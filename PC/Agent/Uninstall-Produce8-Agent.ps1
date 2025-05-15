@@ -1,4 +1,4 @@
-$processName = "Produce8-Agent-dev"
+$processName = "Produce8-Agent"
 if (Get-Process -Name $processName -ErrorAction SilentlyContinue) {
     Stop-Process -Name $processName
     Write-Host "Process '$processName' stopped."
