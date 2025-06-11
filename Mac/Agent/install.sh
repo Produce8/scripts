@@ -1,5 +1,5 @@
 # pkill "Produce8-Agent"
-pkgFilePath="Produce8-Agent-1.0.585.pkg"
+pkgFilePath="{path of PKG file}"
 
 echo "PKG file starting."
 
