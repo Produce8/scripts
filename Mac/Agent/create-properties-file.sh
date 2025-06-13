@@ -1,10 +1,8 @@
 #! /bin/bash
 
-# EG: accountId=59079b49-772c-453b-bb33-70a04e372466
-accountId={###}
+accountId={###}}
+configFileDir="/Users/Shared/Produce8-Agent"
 
-currentuser=`/bin/ls -la /dev/console | /usr/bin/cut -d " " -f 4`
+mkdir $configFileDir
 
-mkdir "/Users/$currentuser/Library/Application Support/Produce8-Agent/"
-
-echo "account.accountId=$accountId" > "/Users/$currentuser/Library/Application Support/Produce8-Agent/account.properties"
+echo "account.accountId=$accountId" > "$configFileDir/account.properties"
