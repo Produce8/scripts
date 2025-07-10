@@ -39,21 +39,6 @@ fi
 
 echo
 
-# Uninstall application bundle
-echo "Attemping to uninstall the desktop application"
-if [ -d "$APP_BUNDLE_PATH" ]; then
-  echo "Removing app bundle at $APP_BUNDLE_PATH"
-  sudo rm -rf "$APP_BUNDLE_PATH"
-  if [ $? -eq 0 ]; then
-    echo "Desktop app removed."
-  else
-    echo "Failed to remove desktop app."
-  fi
-else
-  echo "Produce8 desktop app does not exist on the machine."
-fi
-echo
-
 # Paths to clean
 APP_FILE_PATHS=(
   "$USER/Library/Application Support/$APP_NAME"
@@ -78,5 +63,19 @@ for path in "${APP_FILE_PATHS[@]}"; do
   fi
 done
 
+# Reopen the application
+echo "Attempting to reopen P8 desktop app..."
+if [ -d "/Applications/Produce8.app" ]; then
+  sudo -u "$CURRENT_USER" open -a "/Applications/Produce8.app"
+  if [ $? -eq 0 ]; then
+    echo "Produce8 relaunched successfully."
+  else
+    echo "Failed to reopen Produce8."
+  fi
+else
+  echo "Produce8.app not found in /Applications."
+fi
+
 echo
-echo "$APP_NAME desktop app has been uninstalled from your system."
+echo "Script completed."
+
