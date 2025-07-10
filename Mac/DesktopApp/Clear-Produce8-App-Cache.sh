@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Uninstall Produce8 Desktop App script running..."
+echo "Clear P8 desktop app cache script running..."
 echo
 
 # Detect console user
