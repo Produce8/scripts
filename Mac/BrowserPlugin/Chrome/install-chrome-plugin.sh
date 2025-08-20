@@ -22,4 +22,4 @@ mkdir -p "$PREFS_DIR"
 chmod 644 "$PLIST_PATH"
 chown root:wheel "$PLIST_PATH"
 
-echo "Extension $EXTENSION_ID installed."
+echo "Extension $EXTENSION_ID installed. Please restart Google Chrome to activate it."
