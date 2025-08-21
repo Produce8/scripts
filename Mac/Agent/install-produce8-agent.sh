@@ -1,5 +1,27 @@
 #!/bin/bash
 
+# Create the account properties config file 
+# Set your account id by replacing # in the next line. ie. accountId=59079b49-772c-453b-bb33-70a04e372466
+accountId=#
+configFileDir="/Users/Shared/Produce8-Agent"
+
+# Check if accountId was updated
+if [[ "$accountId" == *"#"* ]]; then
+  echo "Error: Please replace '#' with a valid accountId."
+  exit 1
+fi
+
+mkdir $configFileDir
+echo "account.accountId=$accountId" > "$configFileDir/account.properties"
+
+# Optionally, you can add a departmentId by uncommenting the lines below and replacing # with the desired department id before running the script
+# departmentId=#
+# if [[ "$departmentId" == *"#"* ]]; then
+#   echo "Error: Please replace '#' with a valid departmentId."
+#   exit 1
+# fi
+# echo "departmentId=$departmentId" >> "$configFileDir/account.properties"
+
 # Temporary path to save the installer pkg file
 PKG_PATH="/tmp/Produce8-Agent-latest.pkg"
 
