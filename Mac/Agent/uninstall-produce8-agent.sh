@@ -1,4 +1,6 @@
 #!/bin/bash
+# This script will uninstall the Produce8 Agent and it's associated files.
+# Requires elevated permissions
 
 APP_NAME="Produce8-Agent"
 
@@ -31,6 +33,23 @@ rm -rf "/Library/${APP_NAME}-Updater"
 
 # Remove main app (optional)
 rm -rf "$APP_PATH"
+
+# Remove related user files
+USER=$(stat -f "%Su" /dev/console)
+DIRS=(
+  "/Users/$USER/Library/Logs/Produce8-Agent"
+  "/Users/$USER/Library/Application Support/Produce8-Agent"
+  "/Users/Shared/Produce8-Agent"
+)
+
+for DIR in "${DIRS[@]}"; do
+  if [ -d "$DIR" ]; then
+    echo "Deleting: $DIR"
+    rm -rf "$DIR"
+  else
+    echo "Directory not found: $DIR"
+  fi
+done
 
 echo "[INFO] Uninstallation complete."
 
