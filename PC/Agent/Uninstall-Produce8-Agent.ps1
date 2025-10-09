@@ -33,22 +33,23 @@ catch {
     Write-Output "Error checking package '$processName': $_"
 }
 
+$userProfile = $env:USERPROFILE
 # List of files and folders to delete
 $paths = @(
-    "C:\Users\mthai\AppData\Roaming\Produce8-Agent-dev", # local db files
-    "C:\Users\mthai\AppData\Local\Logs\Produce8-Agent-dev", # log files
-    "C:\ProgramData\Produce8-Agent-dev", # account config
+    "$userProfile\AppData\Roaming\Produce8-Agent-dev", # local db files
+    "$userProfile\AppData\Local\Logs\Produce8-Agent-dev", # log files
+    "C:\ProgramData\Produce8-Agent-dev" # account config (system-wide)
 )
 
 foreach ($path in $paths) {
     if (Test-Path $path) {
         try {
             Remove-Item -Path $path -Recurse -Force
-            Write-Host "Deleted: $path"
+            Write-Output "Deleted: $path"
         } catch {
-            Write-Host "Failed to delete: $path — $($_.Exception.Message)"
+            Write-Output "Failed to delete: $path — $($_.Exception.Message)"
         }
     } else {
-        Write-Host "Path not found: $path"
+        Write-Output "Path not found: $path"
     }
 }
