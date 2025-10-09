@@ -14,13 +14,13 @@ fi
 mkdir $configFileDir
 echo "account.accountId=$accountId" > "$configFileDir/account.properties"
 
-# Optionally, you can add a departmentId by uncommenting the lines below and replacing # with the desired department id before running the script
+# Optional: Uncomment the lines below if you wish to use a department Id and replace the '#' with the desired department Id in the next line
 # departmentId=#
 # if [[ "$departmentId" == *"#"* ]]; then
 #   echo "Error: Please replace '#' with a valid departmentId."
 #   exit 1
 # fi
-# echo "departmentId=$departmentId" >> "$configFileDir/account.properties"
+# echo "account.departmentId=$departmentId" >> "$configFileDir/account.properties"
 
 # Temporary path to save the installer pkg file
 PKG_PATH="/tmp/Produce8-Agent-latest.pkg"

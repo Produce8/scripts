@@ -6,7 +6,8 @@ if (Test-Path -Path 'C:\tmp'){
 elseif (Test-Path -Path 'C:\temp'){
     $tempDir = "C:\temp"
 } else {
-    throw 'No temp directory found. Aborting installation.'
+    $tempDir = 'C:\tmp'
+    New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
 }
 
 $path = $tempDir+'\produce8-agent-latest.msi'

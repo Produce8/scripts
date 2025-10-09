@@ -1,6 +1,7 @@
 $AppName     = "Produce8"
 $ProductCode = $null
 
+# Kill process if running
 Write-Host "Stopping $AppName if it is running..."
 if (Get-Process -Name $AppName -ErrorAction SilentlyContinue) {
     Stop-Process -Name $AppName -Force
@@ -24,14 +25,14 @@ foreach ($key in $UninstallKeys) {
         if ($props.DisplayName -and $props.DisplayName -like "*$AppName*") {
             Write-Host "Found installed app: $($props.DisplayName) $($props.DisplayVersion)"
             if ($props.PSChildName -match "^{.*}$") {
-                $ProductCode = $props.PSChildName # desktop app registry key name
+                $ProductCode = $props.PSChildName # Registry key found matching desktop app name
             } elseif ($props.UninstallString) {
                 $ProductCode = $props.UninstallString
             }
             break
         }
     } 
-    if ($ProductCode) { break }
+    if ($ProductCode) { break } # Stop searching through registry keys if the desktop app was found
 }
 
 if ($ProductCode) {
