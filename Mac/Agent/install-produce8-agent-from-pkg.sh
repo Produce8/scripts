@@ -12,7 +12,13 @@ echo "Installing Produce8 Agent from: $PKG_PATH"
 
 # Run the installer
 # If your PKG supports custom arguments (like ACCOUNTID), use the environment variable approach
-ACCOUNT_ID="59079b49-772c-453b-bb33-70a04e372466"
+ACCOUNT_ID=#
+
+# Check if accountId was updated
+if [[ "$ACCOUNT_ID" == *"#"* ]]; then
+  echo "Error: Please replace '#' with a valid accountId."
+  exit 1
+fi
 
 CONFIG_FILE_DIR="/Users/Shared/Produce8-Agent"
 mkdir $CONFIG_FILE_DIR
