@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# Create the account properties config file 
+# This script will
+#   1. Create the account properties config file
+#   2. Download the installer from AWS S3
+#   3. Run the installer
+
 # Set your account id by replacing # in the next line. ie. accountId=59079b49-772c-453b-bb33-70a04e372466
 accountId=#
 configFileDir="/Users/Shared/Produce8-Agent"
@@ -27,6 +31,9 @@ PKG_PATH="/tmp/Produce8-Agent-latest.pkg"
 
 # Download the pkg
 curl -L "https://desktop-agent-assets-main.s3.us-west-2.amazonaws.com/main/pkg/arm64/Produce8-Agent-latest.pkg" -o "$PKG_PATH"
+
+# For x64 devices use this link instead
+# curl -L "https://desktop-agent-assets-main.s3.us-west-2.amazonaws.com/main/pkg/x64/Produce8-Agent-latest.pkg" -o "$PKG_PATH"
 
 if [[ $? -ne 0 ]]; then
   echo "Unable to download the Produce8 agent installer file"
