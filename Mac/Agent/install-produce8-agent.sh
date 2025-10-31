@@ -35,7 +35,6 @@ curl -L "https://desktop-agent-assets-main.s3.us-west-2.amazonaws.com/main/pkg/a
 # For x64 devices use this link instead
 # curl -L "https://desktop-agent-assets-main.s3.us-west-2.amazonaws.com/main/pkg/x64/Produce8-Agent-latest.pkg" -o "$PKG_PATH"
 
-
 if [[ $? -ne 0 ]]; then
   echo "Unable to download the Produce8 agent installer file"
   exit 1
