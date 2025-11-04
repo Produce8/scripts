@@ -24,4 +24,4 @@ $regValue = "$extensionID;$updateURL"
 # Add the registry entry (increment "1" if this entry is in use)
 Set-ItemProperty -Path $regPath -Name "1" -Value $regValue -Force
 
-Write-Output "Installation complete. Brave extension policy set."
+Write-Output "Installation complete. Brave extension policy set. Restart Brave to apply changes."
