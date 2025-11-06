@@ -23,4 +23,4 @@ $regValue = "$extensionID;$updateURL"
 # Add the registry entry (increment "1" if this entry is in use)
 Set-ItemProperty -Path $regPath -Name "1" -Value $regValue -Force
 
-Write-Output "Installation complete. Firefox extension policy set."
+Write-Output "Installation complete. Edge extension policy set."
