@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script is to be used when the Agent installer is uploaded to RMM directly
+# For an all-in-one solution that downloads the installer and runs it,
+# use the "install-produce8-agent.sh" script instead.
+
 echo "Installing Produce8 Agent on macOS..."
 
 # Get the working directory for Datto RMM (e.g., /Library/Application Support/CentraStage/Packages/...)

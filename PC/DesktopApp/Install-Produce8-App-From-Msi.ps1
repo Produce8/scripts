@@ -1,4 +1,6 @@
-# Add this example script to a Datto component and upload the MSI file directly within the same component.
+# This script is to be used when the installer is uploaded to RMM directly.
+# For an all-in-one solution that downloads the installer and runs it,
+# use the "Install-Produce8-App.ps1" script instead.
 
 # Get the working directory for Datto RMM
 $WorkingDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
