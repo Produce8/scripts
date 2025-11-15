@@ -1,4 +1,4 @@
-$processName = "Produce8-Agent-dev"
+$processName = "Produce8-Agent"
 Write-Output "Checking if process '$processName' is running..."
 try {
     $proc = Get-Process -Name $processName -ErrorAction SilentlyContinue
@@ -36,9 +36,10 @@ catch {
 $userProfile = $env:USERPROFILE
 # List of files and folders to delete
 $paths = @(
-    "$userProfile\AppData\Roaming\Produce8-Agent-dev", # local db files
-    "$userProfile\AppData\Local\Logs\Produce8-Agent-dev", # log files
-    "C:\ProgramData\Produce8-Agent-dev" # account config (system-wide)
+    "$userProfile\AppData\Roaming\$processName", # local db files
+    "$userProfile\AppData\Local\Logs\$processName", # log files
+    "C:\ProgramData\$processName" # account config (system-wide)
+    "C:\ProgramData\$processName-Updater" # updater files
 )
 
 foreach ($path in $paths) {
