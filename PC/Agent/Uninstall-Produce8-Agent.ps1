@@ -38,7 +38,8 @@ $userProfile = $env:USERPROFILE
 $paths = @(
     "$userProfile\AppData\Roaming\$processName", # local db files
     "$userProfile\AppData\Local\Logs\$processName", # log files
-    "C:\ProgramData\$processName" # account config (system-wide)
+    "C:\Windows\System32\config\systemprofile\AppData\Local\$processName\Logs\p8-updater.log", # updater logs
+    "C:\ProgramData\$processName", # account config (system-wide)
     "C:\ProgramData\$processName-Updater" # updater files
 )
 
