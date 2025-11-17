@@ -40,6 +40,7 @@ DIRS=(
   "/Users/$USER/Library/Logs/$APP_NAME"
   "/Users/$USER/Library/Application Support/$APP_NAME"
   "/Users/Shared/$APP_NAME"
+  "/Library/Logs/$APP_NAME"
 )
 
 for DIR in "${DIRS[@]}"; do
