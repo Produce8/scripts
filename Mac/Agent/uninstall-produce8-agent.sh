@@ -37,9 +37,9 @@ rm -rf "$APP_PATH"
 # Remove related user files
 USER=$(stat -f "%Su" /dev/console)
 DIRS=(
-  "/Users/$USER/Library/Logs/Produce8-Agent"
-  "/Users/$USER/Library/Application Support/Produce8-Agent"
-  "/Users/Shared/Produce8-Agent"
+  "/Users/$USER/Library/Logs/$APP_NAME"
+  "/Users/$USER/Library/Application Support/$APP_NAME"
+  "/Users/Shared/$APP_NAME"
 )
 
 for DIR in "${DIRS[@]}"; do
