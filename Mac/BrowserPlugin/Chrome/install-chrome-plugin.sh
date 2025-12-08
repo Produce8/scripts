@@ -14,7 +14,7 @@ PLIST_PATH="$PREFS_DIR/com.google.Chrome.plist"
 mkdir -p "$PREFS_DIR"
 
 # Use PlistBuddy to write the extension config
-/usr/libexec/PlistBuddy -c "Delete :ExtensionInstallForcelist" "$PLIST_PATH" 2>/dev/null
+/usr/libexec/PlistBuddy -c "Delete :ExtensionInstallForcelist" "$PLIST_PATH" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :ExtensionInstallForcelist array" "$PLIST_PATH"
 /usr/libexec/PlistBuddy -c "Add :ExtensionInstallForcelist:0 string $FORCE_INSTALL_STRING" "$PLIST_PATH"
 
