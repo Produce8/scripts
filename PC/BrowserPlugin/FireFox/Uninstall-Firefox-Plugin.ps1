@@ -1,14 +1,13 @@
 # PowerShell Script to Remove Firefox Extension Registry Policy
-# Run this script with administrative privileges in order to modify the registry
-# The broswer will require a restart for changes to take affect
+# Run this script with administrative privileges
+# The browser will require a restart for changes to take effect
 
-Write-Output "Uninstalling P8 extension policy for Firefox"
+Write-Output "Uninstalling P8 extension policy for Mozilla Firefox"
 
-# The registry path where the policy is set
+# Registry path for Firefox Extensions
 $regPath = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
 $extensionURL = "https://addons.mozilla.org/firefox/downloads/latest/produce8-agent/latest.xpi"
 
-# Get all name value pairs at the install path
 if (Test-Path $regPath) {
     $props = Get-ItemProperty -Path $regPath
     $removed = $false
@@ -26,7 +25,7 @@ if (Test-Path $regPath) {
         }
     }
 
-    # Check if the registry key is empty and remove it if so
+    # Clean up if the key is empty
     if ($removed) {
         $remaining = (Get-ItemProperty -Path $regPath).PSObject.Properties |
                      Where-Object { $_.Name -notmatch '^PS(.*)' }
@@ -42,7 +41,7 @@ if (Test-Path $regPath) {
         }
     }
     else {
-        Write-Output "No matching extension policy found for Produce8 agent."
+        Write-Output "No matching Firefox extension policy found for Produce8 agent."
         exit
     }
 } else {
@@ -50,4 +49,4 @@ if (Test-Path $regPath) {
     exit
 }
 
-Write-Output "Firefox extension policy uninstalled successfully. Restart Firefox to apply changes."
+Write-Output "Mozilla Firefox extension policy uninstalled successfully. Restart Firefox to apply changes."
