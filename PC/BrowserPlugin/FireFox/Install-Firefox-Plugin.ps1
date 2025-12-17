@@ -64,7 +64,7 @@ if (-not (Test-Path $distributionDir)) {
         New-Item -Path $distributionDir -ItemType Directory -Force | Out-Null
         Write-Output "Created distribution directory: $distributionDir"
     } catch {
-        Write-Output "ERROR: Could not create distribution directory: $_"
+        Write-Output "ERROR: Could not create distribution directory."
         exit 1
     }
 }
@@ -119,7 +119,7 @@ try {
     [System.IO.File]::WriteAllText($policiesFile, $jsonContent, $utf8NoBom)
     Write-Output "Successfully created/updated policies.json at: $policiesFile"
 } catch {
-    Write-Output "ERROR: Could not write policies.json file: $_"
+    Write-Output "ERROR: Could not write policies.json file."
     exit 1
 }
 
