@@ -1,48 +1,131 @@
-# PowerShell Script to install Firefox Extension Registry Policy 
-# Run this script with administrative privileges in order to modify the registry
-# The broswer will require a restart to enable the extension
+# PowerShell Script to install Firefox Extension via Group Policy (policies.json)
+# Run this script with administrative privileges
+# The browser will require a restart to enable the extension
 
-$extensionURL   = "https://addons.mozilla.org/firefox/downloads/latest/produce8-agent/latest.xpi"
-$localTempDir   = Join-Path $env:TEMP "FirefoxExtension"
-$localXpiPath   = Join-Path $localTempDir "produce8-agent.xpi"
-$regPath        = "HKLM:\SOFTWARE\Policies\Mozilla\Firefox\Extensions\Install"
-
-Write-Output "Instaling P8 extension policy for Mozilla Firefox"
-
-# Create local folder
-if (-not (Test-Path $localTempDir)) { 
-    New-Item -Path $localTempDir -ItemType Directory | Out-Null
-    Write-Output "Created local folder: $localTempDir"
-} else {
-    Write-Output "Local folder already exists: $localTempDir"
+# Helper function to convert PSCustomObject to Hashtable
+function ConvertTo-Hashtable {
+    param([Parameter(ValueFromPipeline)]$InputObject)
+    process {
+        if ($null -eq $InputObject) { return $null }
+        if ($InputObject -is [Hashtable]) { return $InputObject }
+        if ($InputObject -is [PSCustomObject]) {
+            $hash = @{}
+            $InputObject.PSObject.Properties | ForEach-Object {
+                $value = $_.Value
+                if ($value -is [PSCustomObject]) {
+                    $hash[$_.Name] = ConvertTo-Hashtable $value
+                } elseif ($value -is [Array]) {
+                    $hash[$_.Name] = $value | ForEach-Object { ConvertTo-Hashtable $_ }
+                } else {
+                    $hash[$_.Name] = $value
+                }
+            }
+            return $hash
+        }
+        return $InputObject
+    }
 }
 
-# Download the extension
+Write-Output "Installing P8 extension policy for Mozilla Firefox"
+
+# Extension configuration
+$extensionId = "support@produce8.com"
+$installUrl = "https://addons.mozilla.org/firefox/downloads/file/4579169/produce8_agent-3.1.37.xpi"
+
+# Find Firefox installation directory
+$firefoxPaths = @(
+    "${env:ProgramFiles}\Mozilla Firefox",
+    "${env:ProgramFiles(x86)}\Mozilla Firefox"
+)
+
+$firefoxPath = $null
+foreach ($path in $firefoxPaths) {
+    if (Test-Path $path) {
+        $firefoxPath = $path
+        break
+    }
+}
+
+if (-not $firefoxPath) {
+    Write-Output "ERROR: Could not find Firefox installation directory"
+    Write-Output "Searched in: $($firefoxPaths -join ', ')"
+    exit 1
+}
+
+Write-Output "Found Firefox installation: $firefoxPath"
+
+# Define policies.json location
+$distributionDir = Join-Path $firefoxPath "distribution"
+$policiesFile = Join-Path $distributionDir "policies.json"
+
+# Create distribution directory if it doesn't exist
+if (-not (Test-Path $distributionDir)) {
+    try {
+        New-Item -Path $distributionDir -ItemType Directory -Force | Out-Null
+        Write-Output "Created distribution directory: $distributionDir"
+    } catch {
+        Write-Output "ERROR: Could not create distribution directory."
+        exit 1
+    }
+}
+
+# Read existing policies.json if it exists
+$policies = @{}
+if (Test-Path $policiesFile) {
+    try {
+        $existingContent = Get-Content $policiesFile -Raw -ErrorAction Stop
+        $policies = $existingContent | ConvertFrom-Json -ErrorAction Stop | ConvertTo-Hashtable
+        Write-Output "Found existing policies.json, preserving existing policies..."
+    } catch {
+        Write-Output "WARNING: Could not parse existing policies.json, will create new one"
+        Write-Output "Error: $_"
+        $policies = @{}
+    }
+}
+
+# Ensure policies structure exists
+if (-not $policies.ContainsKey("policies")) {
+    $policies["policies"] = @{}
+}
+
+# Convert to hashtable if it's a PSCustomObject
+if ($policies["policies"] -is [PSCustomObject]) {
+    $policies["policies"] = $policies["policies"] | ConvertTo-Hashtable
+}
+
+# Ensure ExtensionSettings exists
+if (-not $policies["policies"].ContainsKey("ExtensionSettings")) {
+    $policies["policies"]["ExtensionSettings"] = @{}
+}
+
+# Convert ExtensionSettings to hashtable if needed
+if ($policies["policies"]["ExtensionSettings"] -is [PSCustomObject]) {
+    $policies["policies"]["ExtensionSettings"] = $policies["policies"]["ExtensionSettings"] | ConvertTo-Hashtable
+}
+
+# Add or update our extension
+$policies["policies"]["ExtensionSettings"][$extensionId] = @{
+    installation_mode = "force_installed"
+    install_url = $installUrl
+}
+
+# Convert back to JSON with proper formatting
+$jsonContent = $policies | ConvertTo-Json -Depth 10
+
+# Write policies.json file with UTF-8 encoding without BOM (Firefox requirement)
 try {
-    Write-Output "Downloading extension from $extensionURL..."
-    Invoke-WebRequest -Uri $extensionURL -OutFile $localXpiPath -UseBasicParsing
-    Write-Output "Extension downloaded to $localXpiPath"
+    # Use UTF8NoBOM encoding
+    $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($policiesFile, $jsonContent, $utf8NoBom)
+    Write-Output "Successfully created/updated policies.json at: $policiesFile"
 } catch {
-    Write-Output "ERROR: Failed to download extension. $_"
-    throw
+    Write-Output "ERROR: Could not write policies.json file."
+    exit 1
 }
 
-# Ensure registry path exists
-if (-not (Test-Path $regPath)) {
-    New-Item -Path $regPath -Force | Out-Null
-    Write-Output "Created registry path: $regPath"
-} else {
-    Write-Output "Registry path already exists: $regPath"
-}
-
-# Find next available registry key
-$existingKeys = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name
-$regValueName = 1
-while ($existingKeys -contains $regValueName.ToString()) { $regValueName++ }
-Write-Output "Using registry key: $regValueName"
-
-# Add registry entry
-Set-ItemProperty -Path $regPath -Name $regValueName -Value $localXpiPath -Force
-Write-Output "Registry updated to install extension."
-
-Write-Output "Installation complete. Verify in Firefox: about:policies -> Active Policies."
+Write-Output ""
+Write-Output "Policy file contents:"
+Write-Output $jsonContent
+Write-Output ""
+Write-Output "Installation complete. Mozilla Firefox extension policy set."
+Write-Output "Restart Firefox to apply changes."

@@ -31,7 +31,7 @@ $path = Join-Path $tempDir 'produce8-agent-latest.msi'
 Write-Output "MSI will be saved to: $path"
 
 # Download the MSI
-Write-Output "Downloading Produce8 Desktop App installer..."
+Write-Output "Downloading Produce8 Agent MSI installer..."
 try {
     $downloadUrl = "https://desktop-agent-assets-main.s3.us-west-2.amazonaws.com/main/msi/x64/Produce8-Agent-latest.msi"
     #For ARM64 devices, use this URL instead:
@@ -51,7 +51,7 @@ if (-not (Test-Path $path)) {
 }
 
 # Install the MSI
-Write-Output "Installing Produce8 Desktop App..."
+Write-Output "Installing Produce8 Agent..."
 try {
     # Set your account id by replacing # in the next line. ie. ACCOUNTID=59079b49-772c-453b-bb33-70a04e372466
     # The account id can be found in the Produce8 portal under the "Account Settings" menu.

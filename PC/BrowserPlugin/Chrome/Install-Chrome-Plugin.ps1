@@ -24,3 +24,4 @@ $regValue = "$extensionID;$updateURL"
 Set-ItemProperty -Path $regPath -Name "1" -Value $regValue -Force
 
 Write-Output "Installation complete. Google Chrome extension policy set."
+Write-Output "Restart Chrome to apply changes."
