@@ -1,0 +1,20 @@
+<!-- preference doamin: org.mozilla.firefox -->
+<!-- use this plist to deploy the plugin via MDM as an alternative means of installation -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>EnterprisePoliciesEnabled</key>
+        <true/>
+        <key>ExtensionSettings</key>
+        <dict>
+        <key>support@produce8.com</key>
+            <dict>
+                <key>installation_mode</key>
+                <string>force_installed</string>
+                <key>install_url</key>
+			    <string>https://addons.mozilla.org/firefox/downloads/file/4579169/produce8_agent-3.1.37.xpi</string>
+            </dict>
+        </dict>
+</dict>
+</plist>
