@@ -9,6 +9,8 @@ echo ""
 
 # Function to uninstall Chrome extension
 uninstall_chrome() {
+echo "--- Uninstalling Google Chrome Extension ---"
+
 EXTENSION_ID="kjdhkfobigjnlanlfjakbbibdbakdcnc"
 UPDATE_URL="https://clients2.google.com/service/update2/crx"
 FORCE_INSTALL_STRING="${EXTENSION_ID};${UPDATE_URL}"
@@ -71,6 +73,8 @@ echo "Please restart Google Chrome and consider rebooting the system for full cl
 
 # Function to uninstall Edge extension
 uninstall_edge() {
+echo "--- Uninstalling Microsoft Edge Extension ---"
+
 EXTENSION_ID="clfmhpehigjmbgobgdebalogdgohbafk"
 UPDATE_URL="https://edge.microsoft.com/extensionwebstorebase/v1/crx"
 FORCE_INSTALL_STRING="${EXTENSION_ID};${UPDATE_URL}"
@@ -129,7 +133,7 @@ echo "Please restart Microsoft Edge and consider rebooting the system for full c
 
 # Function to uninstall Firefox extension
 uninstall_firefox() {
-echo "Uninstalling Firefox Extension on macOS..."
+echo "--- Uninstalling Mozilla Firefox Extension ---"
 
 EXTENSION_ID="support@produce8.com"
 
@@ -139,14 +143,14 @@ PLIST_PATH="$PREFS_DIR/org.mozilla.firefox.plist"
 # Check if the plist exists
 if [ ! -f "$PLIST_PATH" ]; then
     echo "No managed Firefox preferences found. Nothing to remove."
-    exit 0
+    return 0
 fi
 
 # Check if ExtensionSettings exists
 /usr/libexec/PlistBuddy -c "Print :ExtensionSettings" "$PLIST_PATH" > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "No ExtensionSettings policy found. Nothing to remove."
-    exit 0
+    return 0
 fi
 
 # Check if our extension ID exists in ExtensionSettings
