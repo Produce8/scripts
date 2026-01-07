@@ -137,46 +137,165 @@ echo "--- Uninstalling Mozilla Firefox Extension ---"
 
 EXTENSION_ID="support@produce8.com"
 
-PREFS_DIR="/Library/Managed Preferences"
-PLIST_PATH="$PREFS_DIR/org.mozilla.firefox.plist"
+# Check both possible locations for Firefox plist
+PLIST_PATHS=(
+    "/Library/Managed Preferences/org.mozilla.firefox.plist"
+    "/Library/Preferences/org.mozilla.firefox.plist"
+)
 
-# Check if the plist exists
-if [ ! -f "$PLIST_PATH" ]; then
-    echo "No managed Firefox preferences found. Nothing to remove."
-    return 0
-fi
+FOUND_ANY=false
 
-# Check if ExtensionSettings exists
-/usr/libexec/PlistBuddy -c "Print :ExtensionSettings" "$PLIST_PATH" > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo "No ExtensionSettings policy found. Nothing to remove."
-    return 0
-fi
-
-# Check if our extension ID exists in ExtensionSettings
-/usr/libexec/PlistBuddy -c "Print :ExtensionSettings:$EXTENSION_ID" "$PLIST_PATH" > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    /usr/libexec/PlistBuddy -c "Delete :ExtensionSettings:$EXTENSION_ID" "$PLIST_PATH"
-    echo "Removed Firefox extension policy for $EXTENSION_ID"
-    
-    # Check if ExtensionSettings is now empty and remove it if so
-    # Get the full output of ExtensionSettings - if empty, it will be just "Dict {" or similar
-    EXT_SETTINGS_CONTENT=$(/usr/libexec/PlistBuddy -c "Print :ExtensionSettings" "$PLIST_PATH" 2>/dev/null)
-    # Check if the content is empty or only contains dict markers (empty dict)
-    # An empty dict shows as "Dict {" followed by "}" with nothing meaningful in between
-    # Remove all whitespace and check if it's just "Dict{}"
-    EXT_SETTINGS_CLEANED=$(echo "$EXT_SETTINGS_CONTENT" | tr -d '[:space:]' | tr -d '\n')
-    if [ -z "$EXT_SETTINGS_CONTENT" ] || [ "$EXT_SETTINGS_CLEANED" = "Dict{}" ]; then
-        /usr/libexec/PlistBuddy -c "Delete :ExtensionSettings" "$PLIST_PATH" 2>/dev/null || true
-        echo "Removed empty ExtensionSettings dictionary."
+for PLIST_PATH in "${PLIST_PATHS[@]}"; do
+    # Check if the plist exists
+    if [ ! -f "$PLIST_PATH" ]; then
+        continue
     fi
-else
-    echo "Extension $EXTENSION_ID not found in ExtensionSettings."
+    
+    FOUND_ANY=true
+    echo "Processing: $PLIST_PATH"
+    
+    # Check if ExtensionSettings exists
+    /usr/libexec/PlistBuddy -c "Print :ExtensionSettings" "$PLIST_PATH" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        # Check if our extension ID exists in ExtensionSettings
+        /usr/libexec/PlistBuddy -c "Print :ExtensionSettings:$EXTENSION_ID" "$PLIST_PATH" > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            /usr/libexec/PlistBuddy -c "Delete :ExtensionSettings:$EXTENSION_ID" "$PLIST_PATH"
+            echo "  Removed Firefox extension policy for $EXTENSION_ID"
+            
+            # Check if ExtensionSettings is now empty and remove it if so
+            EXT_SETTINGS_CONTENT=$(/usr/libexec/PlistBuddy -c "Print :ExtensionSettings" "$PLIST_PATH" 2>/dev/null)
+            EXT_SETTINGS_CLEANED=$(echo "$EXT_SETTINGS_CONTENT" | tr -d '[:space:]' | tr -d '\n')
+            if [ -z "$EXT_SETTINGS_CONTENT" ] || [ "$EXT_SETTINGS_CLEANED" = "Dict{}" ]; then
+                /usr/libexec/PlistBuddy -c "Delete :ExtensionSettings" "$PLIST_PATH" 2>/dev/null || true
+                echo "  Removed empty ExtensionSettings dictionary."
+            fi
+        else
+            echo "  Extension $EXTENSION_ID not found in ExtensionSettings."
+        fi
+    else
+        echo "  No ExtensionSettings policy found in this file."
+    fi
+    
+    # Check if the plist is now empty or only contains EnterprisePoliciesEnabled
+    # If so, remove the entire file
+    if [ -f "$PLIST_PATH" ]; then
+        # Check if EnterprisePoliciesEnabled exists
+        /usr/libexec/PlistBuddy -c "Print :EnterprisePoliciesEnabled" "$PLIST_PATH" > /dev/null 2>&1
+        HAS_ENTERPRISE=$?
+        
+        # Check if ExtensionSettings still exists
+        /usr/libexec/PlistBuddy -c "Print :ExtensionSettings" "$PLIST_PATH" > /dev/null 2>&1
+        HAS_EXT_SETTINGS=$?
+        
+        # If only EnterprisePoliciesEnabled exists (no ExtensionSettings), remove it
+        if [ $HAS_ENTERPRISE -eq 0 ] && [ $HAS_EXT_SETTINGS -ne 0 ]; then
+            /usr/libexec/PlistBuddy -c "Delete :EnterprisePoliciesEnabled" "$PLIST_PATH" 2>/dev/null || true
+            echo "  Removed EnterprisePoliciesEnabled."
+        fi
+        
+        # Check if file is now empty by trying to list keys
+        # PlistBuddy will fail if the dict is empty
+        /usr/libexec/PlistBuddy -c "Print" "$PLIST_PATH" > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            # File appears to be empty or corrupted, remove it
+            rm -f "$PLIST_PATH" 2>/dev/null && echo "  Removed empty plist file."
+        else
+            # Check if there are any keys in the plist
+            # Use grep to find keys and count lines, ensuring we get a clean integer
+            PLIST_OUTPUT=$(/usr/libexec/PlistBuddy -c "Print" "$PLIST_PATH" 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                KEY_COUNT=$(echo "$PLIST_OUTPUT" | grep -c "<key>" 2>/dev/null || echo "0")
+                # Clean up the count - remove whitespace and ensure it's a number
+                KEY_COUNT=$(echo "$KEY_COUNT" | awk '{print $1}' | tr -d '[:space:]')
+                # Validate it's a number, default to 0 if not
+                if ! echo "$KEY_COUNT" | grep -qE '^[0-9]+$'; then
+                    KEY_COUNT=0
+                fi
+                if [ "$KEY_COUNT" -eq 0 ]; then
+                    rm -f "$PLIST_PATH" 2>/dev/null && echo "  Removed empty plist file."
+                else
+                    # Fix permissions if file still exists
+                    chmod 644 "$PLIST_PATH" 2>/dev/null || true
+                    chown root:wheel "$PLIST_PATH" 2>/dev/null || true
+                fi
+            else
+                # If Print fails, file might be empty or corrupted
+                rm -f "$PLIST_PATH" 2>/dev/null && echo "  Removed empty/corrupted plist file."
+            fi
+        fi
+    fi
+done
+
+if [ "$FOUND_ANY" = false ]; then
+    echo "No Firefox preferences plist files found. Nothing to remove."
 fi
 
-# Fix permissions
-chmod 644 "$PLIST_PATH"
-chown root:wheel "$PLIST_PATH"
+# Remove extension XPI file from all user profiles
+echo ""
+echo "Removing extension XPI files from user profiles..."
+
+REMOVED_COUNT=0
+
+# Check all user profiles on the system
+for USER_HOME in /Users/*; do
+    # Skip if not a directory
+    [ ! -d "$USER_HOME" ] && continue
+    
+    # Skip default system accounts
+    USER_NAME=$(basename "$USER_HOME")
+    if [[ "$USER_NAME" == "Shared" ]] || [[ "$USER_NAME" == ".localized" ]]; then
+        continue
+    fi
+    
+    # Firefox profiles directory
+    FIREFOX_PROFILES_DIR="$USER_HOME/Library/Application Support/Firefox/Profiles"
+    
+    if [ -d "$FIREFOX_PROFILES_DIR" ]; then
+        # Find all Firefox profiles
+        for PROFILE_DIR in "$FIREFOX_PROFILES_DIR"/*; do
+            [ ! -d "$PROFILE_DIR" ] && continue
+            
+            EXTENSIONS_DIR="$PROFILE_DIR/extensions"
+            EXTENSION_XPI="$EXTENSIONS_DIR/${EXTENSION_ID}.xpi"
+            RENAMED_XPI="$EXTENSIONS_DIR/${EXTENSION_ID}.xpi.removed"
+            
+            # First, try to clean up any previously renamed files (in case Firefox is now closed)
+            if [ -f "$RENAMED_XPI" ]; then
+                rm -f "$RENAMED_XPI" 2>/dev/null && REMOVED_COUNT=$((REMOVED_COUNT + 1)) && echo "  Cleaned up previously renamed file: $RENAMED_XPI"
+            fi
+            
+            # Now try to remove the current XPI file
+            if [ -f "$EXTENSION_XPI" ]; then
+                # Try to delete the file
+                if rm -f "$EXTENSION_XPI" 2>/dev/null; then
+                    echo "  Removed: $EXTENSION_XPI"
+                    REMOVED_COUNT=$((REMOVED_COUNT + 1))
+                else
+                    # If deletion fails (likely because Firefox is running), rename it instead
+                    # Firefox won't find it with a different name, so the extension won't load
+                    if mv "$EXTENSION_XPI" "$RENAMED_XPI" 2>/dev/null; then
+                        echo "  Renamed (Firefox was running): $EXTENSION_XPI -> $RENAMED_XPI"
+                        echo "  Extension will not load. File will be deleted when Firefox is closed and script is run again"
+                        REMOVED_COUNT=$((REMOVED_COUNT + 1))
+                    else
+                        echo "  WARNING: Could not delete or rename $EXTENSION_XPI"
+                        echo "  Please close Firefox completely and run this script again"
+                    fi
+                fi
+            fi
+        done
+    fi
+done
+
+if [ $REMOVED_COUNT -eq 0 ]; then
+    echo "  No extension XPI files found in any user profiles"
+else
+    echo "  Removed extension files from $REMOVED_COUNT location(s)"
+fi
+
+echo "Firefox extension uninstall completed."
+echo ""
 }
 
 # Main execution
