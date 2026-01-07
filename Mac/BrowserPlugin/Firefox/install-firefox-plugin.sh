@@ -40,7 +40,3 @@ chown root:wheel "$PLIST_PATH"
 
 echo "Plist file created at: $PLIST_PATH"
 echo "However, Firefox requires this to be deployed via MDM configuration profile to work."
-
-
-
-

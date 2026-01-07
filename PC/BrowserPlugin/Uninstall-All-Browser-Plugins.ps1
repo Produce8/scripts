@@ -330,4 +330,3 @@ Write-Output "Uninstall Complete"
 Write-Output "=========================================="
 Write-Output "Please restart your browsers for changes to take effect."
 Write-Output "You may need to reboot the system for full cleanup."
-

@@ -191,4 +191,3 @@ echo "Please restart your browsers for changes to take effect."
 echo "You may need to reboot the system for full cleanup."
 
 exit 0
-
